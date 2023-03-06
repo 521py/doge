@@ -1,15 +1,20 @@
 import React from 'react';
 import { Formik, Form, Field } from 'formik';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { api } from '../Api/api';
 import axios from 'axios';
+import { ProductsPage } from './ProductsPage';
 
 export const SignIn = () => {
+    const navigate = useNavigate();
+    
     const onFinish = async (values) => {
         console.log("values is...", values);
         const responce = await axios.post("https://api.react-learning.ru/signin", values);
         localStorage.setItem('token', responce.data.accessToken);
-        console.log("resp is", responce)
+        console.log("resp is", responce);
+        navigate("/products");
+
         
     };
 
