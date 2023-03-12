@@ -1,11 +1,12 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 export const Home = () => {
+  useAuth()
+
   return (
     <div>
       <div className='Home'><p>Home page...</p></div>
-      <Navigate to="/signup" />
     </div>
   )
 }

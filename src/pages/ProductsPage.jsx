@@ -1,104 +1,73 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import axios from 'axios';
-import { useFormState } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
 import { api } from '../Api/api';
 // import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../reduxtoolkit/slices/cartSlice';
+import { Avatar, Card } from 'antd';
+
+const { Meta } = Card;
 
 
 export const ProductsPage = () => {
-  const [products, setProducts] = useState({ total: 0, products: [] })
-
-  // const baseUrl = 'https://api.react-learning.ru/products';
-  // useEffect(() => {
-  //   axios(baseUrl)
-  //     .then(
-  //       (res) => {
-  //         console.log(res)
-  //       })
-  // }, [])
+  const { token } = useAuth();
+  const navigate = useNavigate()
+  const dispatch = useDispatch();
+  const [data, setData] = useState({ total: 0, products: undefined })
 
 
-
-
-
-  useEffect(() => {
-    const fetchData = async () => {
+  const { data: productsData, isLoading } = useQuery({
+    queryKey: ["allProducts"],
+    queryFn: async () => {
       const token = localStorage.getItem('token')
       const res = await api.getProducts(token);
       const responce = await res.json()
-      setProducts(responce)
+
+      return responce
+    }
+  })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      console.log(token);
+      const res = await api.getProducts(token);
+      const responce = await res.json()
+      setData(responce)
       console.log(responce);
     }
     fetchData()
-  }, [])
+  }, [token])
 
+  if (!data?.products) {
+    return <div className='ProductsPage'>Products page...</div>
+  }
 
-
-
-
-
-
-
-
-  // axios
-  // .get("https://api.react-learning.ru/products")
-  // .then((responce) => {
-  //   console.log("ProductPage response...", responce.data);
-  // })
-  // .catch((error) => {
-  //   console.error(error);
-  // });
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const token = localStorage.getItem('token')
-
-  //     const res = await fetch("https://api.react-learning.ru/products", {
-  //       method: 'GET',
-  //           headers: {
-  //               'Accept': 'application/json',
-  //               'Content-Type': 'application/json',
-  //               'Authorization': 'Bearer ' + localStorage.getItem('token'),
-  //       }
-  //     })
-  //     const responce = await res.json();
-  //     console.log(responce);
-  //   }
-  //   fetchData();
-  // }, [])
-
-
-
-
-
-
-  // const { users, setUsers } = useState([]);
-  // const { requestError, setRequestError } = useState();
-
-  // const token = localStorage.getItem('token')
-  // axios.interceptors.request.use(
-  //   config => {
-  //     config.headers.authorization = `Bearer ${token}`;
-  //     return config;
-  //     console.log(config, 'data2323233232');
-  //   },
-  //   error => {
-  //     Promise.reject(error);
-  //   }
-  // );
-
-  // const fetchData = useCallback(async () => {
-  //   try {
-  //     const result = await axios.get("https://api.react-learning.ru/products");
-  //     setUsers(result.data);
-  //     console.log(result)
-  //   } catch (err) {
-  //     setRequestError(err.message);
-  //   }
-  // });
+  const handleAddToCart = (id) => {
+    dispatch(addToCart(id))
+  }
 
   return (
-    <div className='ProductsPage'>Products page...</div>
+    <div className='ProductsPage'>
+      {productsData.products.map(product => {
+        return <Card style={{ width: 300 }}
+          cover={<img src={product.pictures} />}>
+          <Meta
+            title={product.name}
+            description={product.description}
+          />
+
+          <div key={product._id}>
+            <p></p>
+            <p>{product.name}</p>
+            <p>{product.description}</p>
+            <button type='button' onClick={() => handleAddToCart(product._id)}>В корзину</button>
+          </div>
+        </Card>
+      })}
+    </div>
+
 
   )
 }
